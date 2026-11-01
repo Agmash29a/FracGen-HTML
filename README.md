@@ -21,6 +21,16 @@ This is a port of the actual [FracGen VB6 source](https://github.com/Agmash29a/F
 - The original circle radius adjustment (`Settings.r + 1`) and legacy palette equations.
 - Original VB6 comments such as `**** Generate Set ****`, `**** Colour pixel black if max iterations reached ****`, and `**** Determine u mapping to count ****` have been carried into the appropriate JavaScript code.
 
+## Version 1.2 — Compact workspace
+
+- A **full-width, viewport-fitted fractal canvas** instead of a permanently narrow image.
+- An unobtrusive toolbar for fractal type, palette, presets, Render, Undo and PNG.
+- All original numerical controls, colour parameters and image-resolution options in a **collapsible Parameters drawer**.
+- Living background controls move into a small Background menu.
+- Viewport coordinates and JSON export remain accessible under a disclosure.
+- No slogans, promotional copy, oversized preset cards, or large introductory panels.
+- All original FracGen computations and comments remain unchanged.
+
 ## What is new (v1.1 — ambient theme)
 
 - White, responsive UI with an interactive fractal canvas (the image area itself uses black where the palette specifies it).
@@ -37,7 +47,8 @@ This is a port of the actual [FracGen VB6 source](https://github.com/Agmash29a/F
 ```text
 FracGen-HTML/
 ├── index.html                   Accessible, semantic interface
-├── styles.css                   All styling, white-background theme
+├── styles.css                   White-background and living-fractal theme
+├── compact.css                  Compact toolbar, drawer and larger image viewer
 ├── js/
 │   ├── settings.js              VB6 constants, enums, presets
 │   ├── complex-arithmetic.js    CLASS_ComplexNumber / CLASS_ComplexArithmetic

@@ -129,8 +129,10 @@
   }
 
   function showError(message) {
-    $('formError').hidden = !message;
-    $('formError').textContent = message || '';
+    for (const id of ['formError', 'drawerError']) {
+      $(id).hidden = !message;
+      $(id).textContent = message || '';
+    }
   }
 
   function setStatus(message, busy = false) {
@@ -139,10 +141,9 @@
     $('liveDot').style.background = busy ? '#c49d63' : '#8d65cb';
   }
 
+  // **** Keep the compact preset selector in sync with the active view ****
   function updatePresetButtons() {
-    document.querySelectorAll('.preset').forEach((button, index) => {
-      button.setAttribute('aria-pressed', String(index === activePresetIndex));
-    });
+    $('presetSelect').value = activePresetIndex === null ? 'custom' : String(activePresetIndex);
   }
 
   function updateHistoryButton() {
@@ -216,6 +217,21 @@
 
   // **** Generate a Mandelbrot or Julia set **** (FORM_MainScreen.GenerateSet)
   // Rendering is broken into short scanline batches to keep the UI responsive.
+  // **** Fit the image to the available window without altering its pixels ****
+  // Width is calculated from the canvas aspect ratio, so zoom coordinates and
+  // the drag-selection rectangle remain aligned with the image.
+  function fitCanvasToViewport() {
+    const surround = $('canvasWrap').parentElement;
+    const surroundStyle = getComputedStyle(surround);
+    const availableWidth = surround.clientWidth
+      - parseFloat(surroundStyle.paddingLeft) - parseFloat(surroundStyle.paddingRight);
+    const availableHeight = surround.clientHeight
+      - parseFloat(surroundStyle.paddingTop) - parseFloat(surroundStyle.paddingBottom);
+    const ratio = canvas.width / canvas.height;
+    const fittedWidth = Math.max(1, Math.floor(Math.min(availableWidth, availableHeight * ratio)));
+    $('canvasWrap').style.width = `${fittedWidth}px`;
+  }
+
   function GenerateSet() {
     let newSettings;
     try {
@@ -239,6 +255,7 @@
     // White exterior is added by JustTheSet; the canvas otherwise stays black.
     const imageData = context.createImageData(Settings.XWidth, Settings.YWidth);
     $('canvasWrap').style.aspectRatio = `${Settings.XWidth} / ${Settings.YWidth}`;
+    fitCanvasToViewport();
     $('imageTitle').textContent = F.SET_TYPES[Settings.FractalSet].label;
     $('imageFormula').textContent = F.SET_TYPES[Settings.FractalSet].formula;
     $('imageResolution').textContent = `${Settings.XWidth} × ${Settings.YWidth} px`;
@@ -285,6 +302,7 @@
   }
 
   function cancelGeneration() {
+    if ($('cancelButton').hidden) return;
     renderToken += 1;
     $('cancelButton').hidden = true;
     $('renderOverlay').hidden = true;
@@ -394,24 +412,17 @@
       $('ColourScheme').appendChild(opt);
     });
 
-    // Build presets using DOM APIs, avoiding untrusted HTML injection.
+    // **** Quick explorations **** (compact replacement for the preset tiles)
+    const presetSelect = $('presetSelect');
+    presetSelect.appendChild(new Option('Custom', 'custom'));
     F.PRESETS.forEach((preset, index) => {
-      const button = document.createElement('button');
-      button.className = 'preset';
-      button.type = 'button';
-      const dot = document.createElement('span');
-      dot.className = 'preset-dot';
-      dot.style.background = preset.colour;
-      const title = document.createElement('strong');
-      title.textContent = preset.name;
-      const subtitle = document.createElement('small');
-      subtitle.textContent = preset.subtitle;
-      button.append(dot, title, subtitle);
-      button.addEventListener('click', () => {
-        // Original preset also restores the original resolution and palette.
-        applyView({ ...F.CONSTANTS, ...preset.settings }, index);
-      });
-      $('presets').appendChild(button);
+      presetSelect.appendChild(new Option(preset.name, String(index)));
+    });
+    presetSelect.addEventListener('change', () => {
+      if (presetSelect.value === 'custom') return;
+      const index = Number(presetSelect.value);
+      const preset = F.PRESETS[index];
+      applyView({ ...F.CONSTANTS, ...preset.settings }, index);
     });
 
     // Ambient options affect only presentation, not M, K or the fractal image.
@@ -435,6 +446,38 @@
     });
     form.addEventListener('input', () => { refreshSwatch(); });
     $('FractalSet').addEventListener('change', refreshFormula);
+    $('ColourScheme').addEventListener('change', refreshSwatch);
+    // The controls are outside settingsForm so either Render button submits it.
+    $('quickGenerateButton').addEventListener('click', () => form.requestSubmit());
+
+    // **** Hide numerical parameters until needed ****
+    const drawer = $('settingsPanel');
+    const toggle = $('settingsToggle');
+    const backdrop = $('drawerBackdrop');
+    function closeSettings() {
+      drawer.hidden = true;
+      backdrop.hidden = true;
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.focus();
+    }
+    function openSettings() {
+      drawer.hidden = false;
+      backdrop.hidden = false;
+      toggle.setAttribute('aria-expanded', 'true');
+      $('closeSettingsButton').focus();
+    }
+    toggle.addEventListener('click', () => drawer.hidden ? openSettings() : closeSettings());
+    $('closeSettingsButton').addEventListener('click', closeSettings);
+    backdrop.addEventListener('click', closeSettings);
+    $('generateButton').addEventListener('click', () => {
+      try { getSettings(); closeSettings(); } catch (_) { /* Show form error in drawer. */ }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !drawer.hidden) {
+        event.stopImmediatePropagation();
+        closeSettings();
+      }
+    });
     $('resetButton').addEventListener('click', () => applyView(F.CONSTANTS, 0));
     $('saveButton').addEventListener('click', SaveImage);
     $('saveAgainButton').addEventListener('click', SaveImage);
@@ -458,6 +501,12 @@
         $('YWidth').value = height;
       });
     });
+
+    window.addEventListener('resize', fitCanvasToViewport);
+    // CSS can resize the canvas when display scaling changes.
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(fitCanvasToViewport).observe($('canvasWrap').parentElement);
+    }
 
     canvas.addEventListener('pointerdown', onPointerDown);
     canvas.addEventListener('pointermove', onPointerMove);

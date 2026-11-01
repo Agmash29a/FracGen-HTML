@@ -1,0 +1,217 @@
+/*
+ * FracGen HTML — Compact workspace (v1.2)
+ *
+ * The existing styles.css preserves the original palette and the living
+ * background. These overrides remove decorative chrome and allocate almost
+ * the entire browser window to the generated fractal.
+ */
+:root {
+  --header-height: 54px;
+}
+body { margin: 0; }
+.app { min-height: 100dvh; }
+[hidden] { display: none !important; }
+
+/* Small application header: identity, original source, and drawer switch. */
+.masthead {
+  position: relative;
+  z-index: 9;
+  height: var(--header-height);
+  padding: 0 16px;
+  gap: 12px;
+  border-bottom: 1px solid #e5e3ec;
+}
+.brand-logo {
+  width: 29px;
+  height: 29px;
+  border-radius: 7px;
+  font-size: 24px;
+  letter-spacing: 0;
+  padding-right: 0;
+  box-shadow: none;
+}
+.brand-text strong { font-size: 17px; letter-spacing: -.5px; }
+.header-actions { gap: 13px; }
+.header-link { font-size: 12px; }
+.header-actions .button { height: 30px; }
+
+/* Floating drawer: the canvas is always full width, even when editing. */
+.layout { display: block; min-height: calc(100dvh - var(--header-height)); }
+.drawer-backdrop {
+  position: fixed;
+  inset: var(--header-height) 0 0;
+  z-index: 7;
+  background: rgb(19 18 36 / 26%);
+}
+.sidebar {
+  position: fixed;
+  z-index: 8;
+  top: var(--header-height);
+  left: 0;
+  bottom: 0;
+  width: min(345px, 94vw);
+  background: #fff;
+  box-shadow: 12px 0 40px rgb(32 22 55 / 15%);
+  overflow: auto;
+}
+.drawer-heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 49px;
+  padding: 0 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+.drawer-heading h2 { font-size: 14px; font-weight: 750; margin: 0; }
+.sidebar-scroll { padding: 12px 17px 24px; }
+.formula-compact { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 14px; }
+.formula-compact strong { color: #6244a0; font-size: 16px; }
+.formula-compact .palette-strip { width: 88px; margin: 0; height: 14px; flex: none; }
+.control-section { padding: 15px 0 17px; }
+.section-heading { margin-bottom: 11px; }
+.section-count { display: none; }
+.section-heading h2 { font-size: 12px; }
+.field { gap: 5px; }
+.two-fields { gap: 9px; }
+.field-help { margin: 7px 0 0; }
+.advanced-details { padding: 14px 0; }
+.actions-sidebar { padding-top: 13px; }
+.actions-sidebar .button-primary { width: 100%; }
+.actions-sidebar .button-primary span { margin: 0; }
+
+/* One compact row for the essential fractal controls. */
+.workspace {
+  padding: 8px 12px 10px;
+  overflow: hidden;
+  background: #fff;
+  min-height: calc(100dvh - var(--header-height));
+}
+.work-header {
+  display: flex;
+  align-items: end;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+.quick-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #77738a;
+}
+.quick-field select {
+  appearance: auto;
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #dedbe8;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 96%);
+  color: #39344a;
+  font-size: 12px;
+  font-weight: 550;
+}
+.quick-set { flex: 1 1 172px; max-width: 240px; }
+.quick-palette { flex: 1 1 160px; max-width: 230px; }
+.quick-preset { flex: 1 1 135px; max-width: 170px; }
+.work-header > .button { height: 32px; padding: 0 12px; }
+.work-header > .button-primary { flex: none; }
+
+/* The wallpaper menu is available, without occupying its own panel. */
+.ambient-menu { position: relative; align-self: end; flex: none; }
+.ambient-menu summary {
+  list-style: none;
+  cursor: pointer;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  border-radius: 7px;
+  padding: 0 12px;
+  background: rgb(255 255 255 / 94%);
+  border: 1px solid #dedbe8;
+  color: #655b7c;
+  font-size: 12px;
+  font-weight: 680;
+}
+.ambient-menu summary::-webkit-details-marker { display: none; }
+.ambient-menu summary:hover { border-color: #ac98d1; }
+.ambient-console {
+  position: absolute !important;
+  z-index: 6 !important;
+  top: calc(100% + 7px);
+  right: 0;
+  display: grid;
+  min-width: 227px;
+  padding: 13px;
+  margin: 0;
+  gap: 10px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgb(44 34 67 / 18%);
+}
+.ambient-intensity { display: flex; gap: 9px; align-items: center; }
+.ambient-console #ambientStrength { width: 140px; }
+.ambient-menu .ambient-control-label { display: block; }
+.ambient-console #ambientStyle { width: 100%; max-width: none; }
+.form-error { margin: 0 0 8px; }
+
+/* The fractal occupies the remaining window and scales to its aspect ratio. */
+.visual-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 9px rgb(37 30 57 / 6%);
+}
+.visual-toolbar { height: 34px; padding: 0 12px; }
+.visual-heading strong { font-size: 11px; }
+.visual-toolbar-right { gap: 7px; }
+.canvas-surround {
+  height: calc(100dvh - 186px);
+  min-height: 300px;
+  padding: 10px;
+}
+.canvas-wrap {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  flex: none;
+  box-shadow: 0 5px 20px rgb(20 18 30 / 16%);
+}
+.visual-status { min-height: 28px; padding: 4px 12px; gap: 10px; }
+.status-text, .coordinates { font-size: 10px; color: #7f8195; }
+.coordinates { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.more-info { padding: 8px 4px 0; font-size: 11px; color: #77738b; }
+.more-info summary { cursor: pointer; width: fit-content; }
+.more-info-content { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-top: 9px; }
+.view-data { display: flex; flex-wrap: wrap; gap: 12px; }
+.view-data strong { font-family: Consolas, monospace; font-size: 11px; color: #504265; }
+
+@media (min-width: 1460px) {
+  .workspace { padding-left: 12px; padding-right: 12px; }
+}
+@media (max-width: 900px) {
+  .workspace { padding: 9px; }
+  .canvas-surround { height: calc(100dvh - 214px); }
+  .quick-set, .quick-palette, .quick-preset { max-width: none; }
+}
+@media (max-width: 540px) {
+  .masthead { padding: 0 11px; }
+  .header-actions { gap: 8px; }
+  .header-link { font-size: 11px; }
+  .work-header { gap: 7px; }
+  .quick-set { flex: 1 1 50%; }
+  .quick-palette { flex: 1 1 34%; }
+  .quick-preset { flex: 1 1 36%; }
+  .work-header > .button { padding: 0 10px; }
+  /* A square image cannot exceed a narrow phone's width: remove unused height. */
+  .canvas-surround { height: auto; min-height: 0; padding: 7px; }
+  .visual-heading { gap: 5px; }
+  #imageFormula { display: none; }
+  .visual-toolbar-right { font-size: 10px; }
+  .coordinates { max-width: 40%; }
+}

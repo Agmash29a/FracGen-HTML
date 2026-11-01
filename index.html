@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <meta name="description" content="FracGen: a pure HTML and JavaScript port of Riley Perry's original VB6 fractal generator.">
-  <title>FracGen — The Fractal Explorer</title>
+  <title>FracGen</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="compact.css">
   <script src="js/settings.js" defer></script>
   <script src="js/complex-arithmetic.js" defer></script>
   <script src="js/colours.js" defer></script>
@@ -19,40 +20,28 @@
   <div class="app">
     <header class="masthead">
       <a class="brand" href="./index.html" aria-label="FracGen home">
-        <span class="brand-logo" aria-hidden="true"><span>ƒ</span><span class="brand-dot">.</span></span>
-        <span class="brand-text"><strong>FracGen</strong><small>FRACTAL EXPLORER</small></span>
+        <span class="brand-logo" aria-hidden="true">ƒ</span>
+        <span class="brand-text"><strong>FracGen</strong></span>
       </a>
-      <span class="masthead-note">A classic reborn for the browser <span class="masthead-separator">/</span> 100% client-side</span>
-      <div class="header-actions">
-        <span class="version-pill">HTML EDITION · 1.1</span>
-        <a class="header-link" href="https://github.com/Agmash29a/FracGen" target="_blank" rel="noopener noreferrer">Original VB6 source <span aria-hidden="true">↗</span></a>
-      </div>
+      <nav class="header-actions" aria-label="Application">
+        <a class="header-link" href="https://github.com/Agmash29a/FracGen-HTML" target="_blank" rel="noopener noreferrer">Source</a>
+        <button type="button" id="settingsToggle" class="button button-outline" aria-controls="settingsPanel" aria-expanded="false">Parameters</button>
+      </nav>
     </header>
 
     <div class="layout">
-      <aside class="sidebar" aria-label="Fractal settings">
+      <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
+      <aside class="sidebar" id="settingsPanel" aria-label="Fractal parameters" hidden>
+        <div class="drawer-heading">
+          <h2>Parameters</h2>
+          <button type="button" id="closeSettingsButton" class="icon-button" aria-label="Close parameters">×</button>
+        </div>
         <div class="sidebar-scroll">
-          <div class="intro">
-            <span class="eyebrow">THE GENERATOR</span>
-            <h1>Make something<br><em>infinite.</em></h1>
-            <p>Five original algorithms. Seven original colour schemes. Endless places to explore.</p>
-          </div>
-
           <form id="settingsForm" novalidate>
-            <section class="control-section">
-              <div class="section-heading"><span class="section-count">01</span><h2>The equation</h2></div>
-              <label class="field">
-                <span>Fractal set <code>FractalSet</code></span>
-                <select id="FractalSet" name="FractalSet"></select>
-              </label>
-              <div class="formula-card"><span class="formula-label">ITERATION FORMULA</span><strong id="formulaText">z² + c · z₀ = 0</strong></div>
-              <label class="field top-gap">
-                <span>Colour scheme <code>ColourScheme</code></span>
-                <select id="ColourScheme" name="ColourScheme"></select>
-              </label>
-              <div id="paletteStrip" class="palette-strip" aria-label="Current colour gradient"></div>
-            </section>
-
+            <div class="formula-compact" aria-label="Current iteration formula">
+              <strong id="formulaText">z² + c</strong>
+              <span id="paletteStrip" class="palette-strip" aria-label="Colour palette"></span>
+            </div>
             <section class="control-section">
               <div class="section-heading"><span class="section-count">02</span><h2>Iteration controls</h2></div>
               <div class="two-fields">
@@ -61,7 +50,6 @@
               </div>
               <p class="field-help">Uses the original escape condition: |z|² &lt; M and count &lt; K.</p>
             </section>
-
             <section class="control-section">
               <div class="section-heading"><span class="section-count">03</span><h2>The complex plane</h2></div>
               <div class="two-fields">
@@ -78,7 +66,6 @@
                 </div>
               </div>
             </section>
-
             <section class="control-section">
               <div class="section-heading"><span class="section-count">04</span><h2>Image output</h2></div>
               <div class="two-fields">
@@ -91,7 +78,6 @@
                 <button class="chip" data-resolution="1200x800" type="button">HD</button>
               </div>
             </section>
-
             <details class="advanced-details">
               <summary><span>Advanced colour parameters</span><span class="chevron" aria-hidden="true">⌄</span></summary>
               <div class="details-inner">
@@ -120,90 +106,92 @@
                 </div>
               </div>
             </details>
-
             <div class="actions-sidebar">
-              <button type="submit" id="generateButton" class="button button-primary"><span aria-hidden="true">✳</span> Generate fractal <span aria-hidden="true">→</span></button>
-              <button type="button" id="resetButton" class="button button-muted">↺ &nbsp; Restore original settings</button>
-              <p id="formError" class="form-error" role="alert" hidden></p>
+              <button type="submit" id="generateButton" class="button button-primary">Render</button>
+              <button type="button" id="resetButton" class="button button-muted">Restore defaults</button>
             </div>
+            <p id="drawerError" class="form-error" role="alert" hidden></p>
           </form>
         </div>
       </aside>
 
       <main class="workspace" id="workspace" data-ambient-style="aura">
         <div class="ambient-backdrop" aria-hidden="true"></div>
-        <div class="work-header">
-          <div>
-            <div class="eyebrow">EXPLORE THE COMPLEX PLANE <span class="eyebrow-line"></span> THE ORIGINAL FRACTALS</div>
-            <h2>Mathematics, <em>made visible.</em></h2>
-            <p>Explore the infinite detail hiding inside a few lines of mathematics.</p>
-          </div>
-          <div class="work-header-buttons">
-            <button id="undoButton" type="button" class="button button-outline" disabled title="Return to previous viewpoint">← Back</button>
-            <button id="saveButton" type="button" class="button button-outline" disabled>↓ Save PNG</button>
-          </div>
+
+        <div class="work-header" role="toolbar" aria-label="Fractal controls">
+          <label class="quick-field quick-set">Set
+            <select id="FractalSet" name="FractalSet" aria-label="Fractal set"></select>
+          </label>
+          <label class="quick-field quick-palette">Palette
+            <select id="ColourScheme" name="ColourScheme" aria-label="Colour scheme"></select>
+          </label>
+          <label class="quick-field quick-preset">Preset
+            <select id="presetSelect" aria-label="Fractal preset"></select>
+          </label>
+          <button id="quickGenerateButton" type="button" class="button button-primary">Render</button>
+          <button id="undoButton" type="button" class="button button-outline" disabled title="Return to previous viewpoint">Undo</button>
+          <button id="saveButton" type="button" class="button button-outline" disabled>PNG</button>
+          <details id="ambientMenu" class="ambient-menu">
+            <summary aria-label="Living background options">Background</summary>
+            <div class="ambient-console" aria-label="Living fractal background">
+              <label class="ambient-checkbox"><input type="checkbox" id="ambientEnabled" checked> Enabled</label>
+              <label for="ambientStrength" class="ambient-control-label">Intensity</label>
+              <div class="ambient-intensity">
+                <input id="ambientStrength" type="range" min="0" max="100" step="1" value="65" aria-label="Background intensity">
+                <output id="ambientStrengthValue" for="ambientStrength">65%</output>
+              </div>
+              <label for="ambientStyle" class="ambient-control-label">Style</label>
+              <select id="ambientStyle" aria-label="Background style">
+                <option value="aura">Soft aura</option>
+                <option value="texture">Fine detail</option>
+              </select>
+            </div>
+          </details>
         </div>
-
-        <section class="ambient-console" aria-label="Living fractal background">
-          <div class="ambient-description">
-            <span class="ambient-symbol" aria-hidden="true">✳</span>
-            <span><strong>Living background <span class="ambient-new">NEW</span></strong>
-              <small>Your latest fractal becomes part of the page.</small></span>
-          </div>
-          <div class="ambient-controls">
-            <label class="ambient-checkbox">
-              <input type="checkbox" id="ambientEnabled" checked>
-              <span>Enabled</span>
-            </label>
-            <label for="ambientStrength" class="ambient-control-label">Intensity</label>
-            <input id="ambientStrength" type="range" min="0" max="100" step="1" value="65" aria-label="Background intensity">
-            <output id="ambientStrengthValue" for="ambientStrength">65%</output>
-            <label for="ambientStyle" class="ambient-control-label">Style</label>
-            <select id="ambientStyle" aria-label="Background style">
-              <option value="aura">Soft aura</option>
-              <option value="texture">Fine detail</option>
-            </select>
-          </div>
-        </section>
-
-        <section class="presets-section" aria-label="Fractal viewpoints">
-          <div class="content-heading"><span>QUICK EXPLORATIONS</span><span>Click a viewpoint to explore</span></div>
-          <div id="presets" class="preset-list"></div>
-        </section>
+        <p id="formError" class="form-error" role="alert" hidden></p>
 
         <section class="visual-card" aria-label="Fractal output">
           <div class="visual-toolbar">
-            <div class="visual-heading"><span class="live-dot" id="liveDot"></span><strong id="imageTitle">Mandelbrot Set</strong><span class="visual-divider">/</span><span id="imageFormula">z² + c</span></div>
-            <div class="visual-toolbar-right"><span id="imageResolution">500 × 500 px</span><span class="toolbar-rule"></span><button id="cancelButton" class="icon-text-button" type="button" hidden>Cancel</button><button id="zoomOutButton" class="icon-button" type="button" title="Zoom out around centre" aria-label="Zoom out">−</button><button id="zoomInButton" class="icon-button" type="button" title="Zoom in around centre" aria-label="Zoom in">+</button></div>
+            <div class="visual-heading">
+              <span class="live-dot" id="liveDot"></span>
+              <strong id="imageTitle">Mandelbrot</strong>
+              <span class="visual-divider">/</span>
+              <span id="imageFormula">z² + c</span>
+            </div>
+            <div class="visual-toolbar-right">
+              <span id="imageResolution">500 × 500 px</span>
+              <button id="cancelButton" class="icon-text-button" type="button" hidden>Cancel</button>
+              <button id="zoomOutButton" class="icon-button" type="button" title="Zoom out around centre" aria-label="Zoom out">−</button>
+              <button id="zoomInButton" class="icon-button" type="button" title="Zoom in around centre" aria-label="Zoom in">+</button>
+            </div>
           </div>
           <div class="canvas-surround">
             <div id="canvasWrap" class="canvas-wrap">
               <canvas id="fractalCanvas" width="500" height="500" aria-label="Interactive fractal image. Drag to zoom or use the mouse wheel.">Your browser does not support HTML5 canvas.</canvas>
               <div id="zoomBox" class="zoom-box" hidden></div>
-              <div id="renderOverlay" class="render-overlay" role="status" aria-live="polite"><span class="loader" aria-hidden="true"></span><strong>Generating fractal</strong><small id="overlayProgress">Preparing the complex plane…</small></div>
+              <div id="renderOverlay" class="render-overlay" role="status" aria-live="polite">
+                <span class="loader" aria-hidden="true"></span><strong>Rendering</strong>
+                <small id="overlayProgress">Preparing…</small>
+              </div>
             </div>
           </div>
           <div class="visual-status">
             <span class="status-text"><span class="status-indicator" id="statusIndicator"></span><span id="statusText" role="status" aria-live="polite">Ready</span></span>
-            <span class="canvas-hint">Drag to zoom <span class="hint-bullet">•</span> Scroll to zoom <span class="hint-bullet">•</span> R to render</span>
+            <span id="mousePosition" class="coordinates">Move over image for coordinates</span>
           </div>
           <div id="progressTrack" class="progress-track" hidden><span id="progressFill"></span></div>
         </section>
 
-        <section class="below-canvas" aria-label="Current image information">
-          <div class="info-card">
-            <div class="info-title"><span class="info-icon">⌖</span> VIEWPORT <span class="info-tag">COMPLEX PLANE</span></div>
-            <div class="info-data"><div><small>REAL AXIS</small><strong id="realRange">−2.0000 → 2.0000</strong></div><div><small>IMAGINARY AXIS</small><strong id="imagRange">−2.0000 → 2.0000</strong></div></div>
-            <p class="info-foot" id="mousePosition">Hover over the image to inspect coordinates</p>
+        <details class="more-info">
+          <summary>Viewport &amp; export settings</summary>
+          <div class="more-info-content">
+            <div class="view-data"><span>Real: <strong id="realRange">−2 → 2</strong></span><span>Imaginary: <strong id="imagRange">−2 → 2</strong></span></div>
+            <div class="export-buttons">
+              <button type="button" id="saveSettingsButton" class="button button-outline button-small">Export JSON</button>
+              <button type="button" id="saveAgainButton" class="button button-outline button-small" disabled>Export PNG</button>
+            </div>
           </div>
-          <div class="info-card info-card-export">
-            <div class="info-title"><span class="info-icon">⬡</span> EXPORT <span class="info-tag">NO SERVER REQUIRED</span></div>
-            <p>Save the rendered image, or keep all parameters for a later exploration.</p>
-            <div class="export-buttons"><button type="button" id="saveSettingsButton" class="button button-outline button-small">↓ Settings JSON</button><button type="button" id="saveAgainButton" class="button button-light button-small" disabled>↓ Fractal PNG</button></div>
-          </div>
-        </section>
-
-        <footer class="footer"><span>© FracGen · Original VB6 application by Riley Perry</span><span>Pure HTML · CSS · JavaScript <span class="footer-mark">✳</span> No dependencies</span></footer>
+        </details>
       </main>
     </div>
   </div>
