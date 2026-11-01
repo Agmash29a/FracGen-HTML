@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="FracGen: a pure HTML and JavaScript port of Riley Perry's original VB6 fractal generator.">
+  <title>FracGen — The Fractal Explorer</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="js/settings.js" defer></script>
+  <script src="js/complex-arithmetic.js" defer></script>
+  <script src="js/colours.js" defer></script>
+  <script src="js/mandelbrot.js" defer></script>
+  <script src="js/geometry.js" defer></script>
+  <script src="js/ambient.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="masthead">
+      <a class="brand" href="./index.html" aria-label="FracGen home">
+        <span class="brand-logo" aria-hidden="true"><span>ƒ</span><span class="brand-dot">.</span></span>
+        <span class="brand-text"><strong>FracGen</strong><small>FRACTAL EXPLORER</small></span>
+      </a>
+      <span class="masthead-note">A classic reborn for the browser <span class="masthead-separator">/</span> 100% client-side</span>
+      <div class="header-actions">
+        <span class="version-pill">HTML EDITION · 1.1</span>
+        <a class="header-link" href="https://github.com/Agmash29a/FracGen" target="_blank" rel="noopener noreferrer">Original VB6 source <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" aria-label="Fractal settings">
+        <div class="sidebar-scroll">
+          <div class="intro">
+            <span class="eyebrow">THE GENERATOR</span>
+            <h1>Make something<br><em>infinite.</em></h1>
+            <p>Five original algorithms. Seven original colour schemes. Endless places to explore.</p>
+          </div>
+
+          <form id="settingsForm" novalidate>
+            <section class="control-section">
+              <div class="section-heading"><span class="section-count">01</span><h2>The equation</h2></div>
+              <label class="field">
+                <span>Fractal set <code>FractalSet</code></span>
+                <select id="FractalSet" name="FractalSet"></select>
+              </label>
+              <div class="formula-card"><span class="formula-label">ITERATION FORMULA</span><strong id="formulaText">z² + c · z₀ = 0</strong></div>
+              <label class="field top-gap">
+                <span>Colour scheme <code>ColourScheme</code></span>
+                <select id="ColourScheme" name="ColourScheme"></select>
+              </label>
+              <div id="paletteStrip" class="palette-strip" aria-label="Current colour gradient"></div>
+            </section>
+
+            <section class="control-section">
+              <div class="section-heading"><span class="section-count">02</span><h2>Iteration controls</h2></div>
+              <div class="two-fields">
+                <label class="field"><span>Bailout <code>M</code></span><input type="number" id="M" name="M" min="1" max="1999" step="1" required></label>
+                <label class="field"><span>Iterations <code>K</code></span><input type="number" id="K" name="K" min="1" max="2000" step="1" required></label>
+              </div>
+              <p class="field-help">Uses the original escape condition: |z|² &lt; M and count &lt; K.</p>
+            </section>
+
+            <section class="control-section">
+              <div class="section-heading"><span class="section-count">03</span><h2>The complex plane</h2></div>
+              <div class="two-fields">
+                <label class="field"><span>Real minimum <code>x1</code></span><input type="number" id="x1" name="x1" step="any" required></label>
+                <label class="field"><span>Real maximum <code>x2</code></span><input type="number" id="x2" name="x2" step="any" required></label>
+                <label class="field"><span>Imag. minimum <code>y1</code></span><input type="number" id="y1" name="y1" step="any" required></label>
+                <label class="field"><span>Imag. maximum <code>y2</code></span><input type="number" id="y2" name="y2" step="any" required></label>
+              </div>
+              <div id="juliaFields" class="julia-settings">
+                <div class="subsection-label">JULIA CONSTANT · c</div>
+                <div class="two-fields">
+                  <label class="field"><span>Real <code>cx</code></span><input type="number" id="cx" name="cx" step="any" required></label>
+                  <label class="field"><span>Imaginary <code>cy</code></span><input type="number" id="cy" name="cy" step="any" required></label>
+                </div>
+              </div>
+            </section>
+
+            <section class="control-section">
+              <div class="section-heading"><span class="section-count">04</span><h2>Image output</h2></div>
+              <div class="two-fields">
+                <label class="field"><span>Width <code>XWidth</code></span><input type="number" id="XWidth" name="XWidth" min="100" max="1800" step="1" required></label>
+                <label class="field"><span>Height <code>YWidth</code></span><input type="number" id="YWidth" name="YWidth" min="100" max="1800" step="1" required></label>
+              </div>
+              <div class="resolution-chips" aria-label="Quick resolutions">
+                <button class="chip" data-resolution="500x500" type="button">500² · Original</button>
+                <button class="chip" data-resolution="800x600" type="button">800 × 600</button>
+                <button class="chip" data-resolution="1200x800" type="button">HD</button>
+              </div>
+            </section>
+
+            <details class="advanced-details">
+              <summary><span>Advanced colour parameters</span><span class="chevron" aria-hidden="true">⌄</span></summary>
+              <div class="details-inner">
+                <p>The original RGB line, circle and modifier settings from <code>CLASS_Mandelbrot.cls</code>.</p>
+                <div class="subsection-label">LINE THROUGH COLOUR SPACE · RGB START / END</div>
+                <div class="three-fields">
+                  <label class="field"><span><code>LINE_x1</code></span><input id="LINE_x1" name="LINE_x1" type="number" min="0" max="255"></label>
+                  <label class="field"><span><code>LINE_y1</code></span><input id="LINE_y1" name="LINE_y1" type="number" min="0" max="255"></label>
+                  <label class="field"><span><code>LINE_z1</code></span><input id="LINE_z1" name="LINE_z1" type="number" min="0" max="255"></label>
+                  <label class="field"><span><code>LINE_x2</code></span><input id="LINE_x2" name="LINE_x2" type="number" min="0" max="255"></label>
+                  <label class="field"><span><code>LINE_y2</code></span><input id="LINE_y2" name="LINE_y2" type="number" min="0" max="255"></label>
+                  <label class="field"><span><code>LINE_z2</code></span><input id="LINE_z2" name="LINE_z2" type="number" min="0" max="255"></label>
+                </div>
+                <div class="subsection-label">CIRCLE THROUGH COLOUR SPACE</div>
+                <div class="two-fields">
+                  <label class="field"><span><code>xc</code></span><input id="xc" name="xc" type="number" min="0" max="255"></label>
+                  <label class="field"><span><code>yc</code></span><input id="yc" name="yc" type="number" min="0" max="255"></label>
+                  <label class="field"><span><code>r</code></span><input id="r" name="r" type="number" min="0" max="126"></label>
+                  <label class="field"><span><code>ZIndex</code></span><input id="ZIndex" name="ZIndex" type="number" min="0" max="255"></label>
+                </div>
+                <div class="subsection-label">RGB MULTIPLIER</div>
+                <div class="three-fields">
+                  <label class="field"><span><code>RGB_R</code></span><input id="RGB_R" name="RGB_R" type="number" min="0" max="255"></label>
+                  <label class="field"><span><code>RGB_G</code></span><input id="RGB_G" name="RGB_G" type="number" min="0" max="255"></label>
+                  <label class="field"><span><code>RGB_B</code></span><input id="RGB_B" name="RGB_B" type="number" min="0" max="255"></label>
+                </div>
+              </div>
+            </details>
+
+            <div class="actions-sidebar">
+              <button type="submit" id="generateButton" class="button button-primary"><span aria-hidden="true">✳</span> Generate fractal <span aria-hidden="true">→</span></button>
+              <button type="button" id="resetButton" class="button button-muted">↺ &nbsp; Restore original settings</button>
+              <p id="formError" class="form-error" role="alert" hidden></p>
+            </div>
+          </form>
+        </div>
+      </aside>
+
+      <main class="workspace" id="workspace" data-ambient-style="aura">
+        <div class="ambient-backdrop" aria-hidden="true"></div>
+        <div class="work-header">
+          <div>
+            <div class="eyebrow">EXPLORE THE COMPLEX PLANE <span class="eyebrow-line"></span> THE ORIGINAL FRACTALS</div>
+            <h2>Mathematics, <em>made visible.</em></h2>
+            <p>Explore the infinite detail hiding inside a few lines of mathematics.</p>
+          </div>
+          <div class="work-header-buttons">
+            <button id="undoButton" type="button" class="button button-outline" disabled title="Return to previous viewpoint">← Back</button>
+            <button id="saveButton" type="button" class="button button-outline" disabled>↓ Save PNG</button>
+          </div>
+        </div>
+
+        <section class="ambient-console" aria-label="Living fractal background">
+          <div class="ambient-description">
+            <span class="ambient-symbol" aria-hidden="true">✳</span>
+            <span><strong>Living background <span class="ambient-new">NEW</span></strong>
+              <small>Your latest fractal becomes part of the page.</small></span>
+          </div>
+          <div class="ambient-controls">
+            <label class="ambient-checkbox">
+              <input type="checkbox" id="ambientEnabled" checked>
+              <span>Enabled</span>
+            </label>
+            <label for="ambientStrength" class="ambient-control-label">Intensity</label>
+            <input id="ambientStrength" type="range" min="0" max="100" step="1" value="65" aria-label="Background intensity">
+            <output id="ambientStrengthValue" for="ambientStrength">65%</output>
+            <label for="ambientStyle" class="ambient-control-label">Style</label>
+            <select id="ambientStyle" aria-label="Background style">
+              <option value="aura">Soft aura</option>
+              <option value="texture">Fine detail</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="presets-section" aria-label="Fractal viewpoints">
+          <div class="content-heading"><span>QUICK EXPLORATIONS</span><span>Click a viewpoint to explore</span></div>
+          <div id="presets" class="preset-list"></div>
+        </section>
+
+        <section class="visual-card" aria-label="Fractal output">
+          <div class="visual-toolbar">
+            <div class="visual-heading"><span class="live-dot" id="liveDot"></span><strong id="imageTitle">Mandelbrot Set</strong><span class="visual-divider">/</span><span id="imageFormula">z² + c</span></div>
+            <div class="visual-toolbar-right"><span id="imageResolution">500 × 500 px</span><span class="toolbar-rule"></span><button id="cancelButton" class="icon-text-button" type="button" hidden>Cancel</button><button id="zoomOutButton" class="icon-button" type="button" title="Zoom out around centre" aria-label="Zoom out">−</button><button id="zoomInButton" class="icon-button" type="button" title="Zoom in around centre" aria-label="Zoom in">+</button></div>
+          </div>
+          <div class="canvas-surround">
+            <div id="canvasWrap" class="canvas-wrap">
+              <canvas id="fractalCanvas" width="500" height="500" aria-label="Interactive fractal image. Drag to zoom or use the mouse wheel.">Your browser does not support HTML5 canvas.</canvas>
+              <div id="zoomBox" class="zoom-box" hidden></div>
+              <div id="renderOverlay" class="render-overlay" role="status" aria-live="polite"><span class="loader" aria-hidden="true"></span><strong>Generating fractal</strong><small id="overlayProgress">Preparing the complex plane…</small></div>
+            </div>
+          </div>
+          <div class="visual-status">
+            <span class="status-text"><span class="status-indicator" id="statusIndicator"></span><span id="statusText" role="status" aria-live="polite">Ready</span></span>
+            <span class="canvas-hint">Drag to zoom <span class="hint-bullet">•</span> Scroll to zoom <span class="hint-bullet">•</span> R to render</span>
+          </div>
+          <div id="progressTrack" class="progress-track" hidden><span id="progressFill"></span></div>
+        </section>
+
+        <section class="below-canvas" aria-label="Current image information">
+          <div class="info-card">
+            <div class="info-title"><span class="info-icon">⌖</span> VIEWPORT <span class="info-tag">COMPLEX PLANE</span></div>
+            <div class="info-data"><div><small>REAL AXIS</small><strong id="realRange">−2.0000 → 2.0000</strong></div><div><small>IMAGINARY AXIS</small><strong id="imagRange">−2.0000 → 2.0000</strong></div></div>
+            <p class="info-foot" id="mousePosition">Hover over the image to inspect coordinates</p>
+          </div>
+          <div class="info-card info-card-export">
+            <div class="info-title"><span class="info-icon">⬡</span> EXPORT <span class="info-tag">NO SERVER REQUIRED</span></div>
+            <p>Save the rendered image, or keep all parameters for a later exploration.</p>
+            <div class="export-buttons"><button type="button" id="saveSettingsButton" class="button button-outline button-small">↓ Settings JSON</button><button type="button" id="saveAgainButton" class="button button-light button-small" disabled>↓ Fractal PNG</button></div>
+          </div>
+        </section>
+
+        <footer class="footer"><span>© FracGen · Original VB6 application by Riley Perry</span><span>Pure HTML · CSS · JavaScript <span class="footer-mark">✳</span> No dependencies</span></footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
